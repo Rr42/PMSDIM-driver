@@ -1,0 +1,14 @@
+# Files to be ignored
+*.o 
+*.ko 
+*.mod 
+*.symvers 
+*.order 
+*.cmd 
+*.mod.c 
+.tmp_versions
+.cache.mk
+*.code-workspace
+
+UserApp/*.o
+UserApp/*.run
