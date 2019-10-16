@@ -1,7 +1,7 @@
 /*
 * File name: PMSDErrorCodes.c
 * Code author: Ramana R (github@Rr42)
-* Code version: v1.0
+* Code version: v1.0.1
 * Application: PMSD Interface Module driver
 * Description: 
 * 	This code provides definitions for error codes used in the PMSD IM application.
@@ -26,3 +26,8 @@
 
 const char ECODE_OK[2] = "0\0";
 const char ECODE_FAIL[3] = "-1\0";
+
+int DUMMY_FUNCTION(char var)
+{
+    return RT_OK;
+}

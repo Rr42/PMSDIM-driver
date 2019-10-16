@@ -31,7 +31,7 @@
 /* Data structure for virtual device */
 struct PMSDInterfacer
 {
-    char command[2];
+    char command[3];
     char result[5];
 
     /* Privent data corruption */

@@ -57,20 +57,75 @@ int gpioExit(void)
     return RT_OK;
 }
 
+/* Interfacer commands
+* Test commands (GPIO):
+*   'T0'  : SET TEST_LED LOW
+*   'T1'  : SET TEST_LED HIGH
+* Read commands (ADC):
+*   'R1'  : READ ADC 1_SAMPLE 
+*   'RNn' : READ ADC N_SAMPLE n
+* Write commands (DMUX):
+*   'W1'  : WRITE DMUX 1_SAMPLE
+*   'WNn' : WRITE DMUX N_SAMPLE n
+ */
 int interfacerExecute(struct PMSDInterfacer *interfacer)
 {
     switch( (*interfacer).command[0] )
     {
-        case '0':
-            strcpy((*interfacer).result, ( (gpioSetSignalL() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+        case 'T':
+            switch( (*interfacer).command[1] )
+            {
+                case '0':
+                    strcpy((*interfacer).result, ( (gpioSetSignalL() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+                    break;
+
+                case '1':
+                    strcpy((*interfacer).result, ( (gpioSetSignalH() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ));
+                    break;
+
+                default:
+                    strcpy((*interfacer).result, (const char*)&ECODE_FAIL);
+                    return RT_UNMET_CONDITION;
+            }
         break;
-        case '1':
-            strcpy((*interfacer).result, ( (gpioSetSignalH() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ));
-        break;
+
+        case 'R':
+            switch( (*interfacer).command[1] )
+            {
+                case '1':
+                    strcpy((*interfacer).result, ( (DUMMY_FUNCTION('0') >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+                break;
+
+                case 'N':
+                    strcpy((*interfacer).result, ( (DUMMY_FUNCTION( (*interfacer).command[2] ) >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+                    break;
+
+                default:
+                    strcpy((*interfacer).result, (const char*)&ECODE_FAIL);
+                    return RT_UNMET_CONDITION;
+            }
+            break;
+        
+        case 'W':
+            switch( (*interfacer).command[1] )
+            {
+                case '1':
+                    strcpy((*interfacer).result, ( (DUMMY_FUNCTION('0') >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+                break;
+
+                case 'N':
+                    strcpy((*interfacer).result, ( (DUMMY_FUNCTION( (*interfacer).command[2] ) >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+                    break;
+
+                default:
+                    strcpy((*interfacer).result, (const char*)&ECODE_FAIL);
+                    return RT_UNMET_CONDITION;
+            }
+            break;
+
         default:
             strcpy((*interfacer).result, (const char*)&ECODE_FAIL);
             return RT_UNMET_CONDITION;
-        break;
     }
 
     return RT_OK;
