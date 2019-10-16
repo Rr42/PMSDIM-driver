@@ -1,7 +1,7 @@
 /*
 * File name: gpioCore.c
 * Code author: Ramana R (github@Rr42)
-* Code version: v1.0
+* Code version: v1.0.1
 * Application: PMSD Interface Module driver
 * Description: 
 *   This code provides definitions for the core GPIO functionality required by the PMSD Interface Module driver.
@@ -40,13 +40,13 @@ int gpioInit(void)
 int gpioSetSignalL(void)
 {
     gpio_set_value(INDICATOR_LED, LOW);
-    return 0;
+    return RT_OK;
 }
 
 int gpioSetSignalH(void)
 {
     gpio_set_value(INDICATOR_LED, HIGH);
-    return 0;
+    return RT_OK;
 }
 
 int gpioExit(void)
@@ -54,5 +54,24 @@ int gpioExit(void)
     gpio_unexport(INDICATOR_LED);
     gpio_free(INDICATOR_LED);
 
-    return 0;
+    return RT_OK;
+}
+
+int interfacerExecute(struct PMSDInterfacer *interfacer)
+{
+    switch( (*interfacer).command[0] )
+    {
+        case '0':
+            strcpy((*interfacer).result, ( (gpioSetSignalL() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
+        break;
+        case '1':
+            strcpy((*interfacer).result, ( (gpioSetSignalH() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ));
+        break;
+        default:
+            strcpy((*interfacer).result, (const char*)&ECODE_FAIL);
+            return RT_UNMET_CONDITION;
+        break;
+    }
+
+    return RT_OK;
 }

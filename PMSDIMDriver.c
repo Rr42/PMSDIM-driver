@@ -1,7 +1,7 @@
 /* 
 * File name: PMSDIMDriver.c
 * Code author: Ramana R (github@Rr42)
-* Code version: v1.0
+* Code version: v1.0.1
 * Application: PMSD Interface Module driver
 * Description:
 *   This is a Linux driver module built to work with the PMSD interface module and allow
@@ -30,24 +30,19 @@
 #include <linux/fs.h> 
 /* Char driver for character device drivers */
 #include <linux/cdev.h>
-/* Allows access to semaphores for sychronization, helps privent corruption due to multiple threads accessing the same data */
-#include <linux/semaphore.h>
 /* Access and map data from user space to kernel space; copy_to_user,copy_from_user */
 #include <linux/uaccess.h>
 /* Include GPIO functionality */
 #include "gpioCore.h"
 /* Include for handling character data */
 #include <linux/string.h>
+/* Include data structure for virtual device */
+#include "PMSDInterfacer.h"
+/* Include error code definitions */
+#include "PMSDErrorCodes.h"
 
-/* Data structure for virtual device */
-struct fake_device 
-{
-    char command[2];
-    char result[5];
-
-    /* Privent data corruption */
-    struct semaphore sem;
-} virtual_device;
+/* Instance of virtual device */
+struct PMSDInterfacer interfacer;
 
 /* myCDEV */
 struct cdev *mcdev;
@@ -64,22 +59,18 @@ dev_t dev_num;
 /* define the device name */
 #define DEVICE_NAME "PMSDIMD"
 
-/* Error codes */
-const char ECODE_OK[2] = "0\0";
-const char ECODE_FAIL[3] = "-1\0";
-
 /* Device open function */
 int PMSDIMdriver_open(struct inode *inode, struct file *filp)
 {
     /* Lock the device using semiphore to privent other modules from using the device at the same time */
-    if(down_interruptible(&virtual_device.sem) != 0)
+    if(down_interruptible(&interfacer.sem) != 0)
     {
         printk(KERN_ALERT "PMSDIMD: could not lock device\n");
-        return -1;
+        return SYRT_FATAL;
     }
 
     printk(KERN_INFO "PMSDIMD: Device opened\n");
-    return 0;
+    return SYRT_OK;
 }
 
 /* Device read function */
@@ -89,7 +80,7 @@ ssize_t PMSDIMdriver_read(struct file *filp, char *bufStoreData, size_t bufCount
     /* Take data from kernel space (device) to user space (process) */
     printk(KERN_INFO "PMSDIMD: Reading from device\n");
 
-    sprintf(data, "{ C:%s, R:%s }", virtual_device.command, virtual_device.result);
+    sprintf(data, "{ C:%s, R:%s }", interfacer.command, interfacer.result);
 
     /* (<destination>, <source>, <sizeToTransfer>) */
     ret = copy_to_user(bufStoreData, data, bufCount);
@@ -103,20 +94,9 @@ ssize_t PMSDIMdriver_write(struct file *filp, const char *bufStoreData, size_t b
     printk(KERN_INFO "PMSDIMD: Writing to device\n");
 
     /* (<destination>, <source>, <sizeToTransfer>) */
-    ret = copy_from_user(virtual_device.command, bufStoreData, bufCount);
+    ret = copy_from_user(interfacer.command, bufStoreData, bufCount);
 
-    switch(virtual_device.command[0])
-    {
-        case '0':
-            strcpy(virtual_device.result, ( (gpioSetSignalL() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ) );
-        break;
-        case '1':
-            strcpy(virtual_device.result, ( (gpioSetSignalH() >= 0)?(const char*)&ECODE_OK:(const char*)&ECODE_FAIL ));
-        break;
-        default:
-            strcpy(virtual_device.result, (const char*)&ECODE_FAIL);
-        break;
-    }
+    interfacerExecute(&interfacer);
 
     return ret;
 }
@@ -125,9 +105,9 @@ ssize_t PMSDIMdriver_write(struct file *filp, const char *bufStoreData, size_t b
 int PMSDIMdriver_close(struct inode *inode, struct file *filp)
 {
     /* remove lock on device */
-    up(&virtual_device.sem);
+    up(&interfacer.sem);
     printk(KERN_INFO "PMSDIMD: Device closed\n");
-    return 0;
+    return SYRT_OK;
 }
 
 /* File opperations structure */
@@ -176,7 +156,7 @@ static int PMSDIMdriver_init(void)
     }
 
     /* Init the semaphore with initial value of 1 */
-    sema_init(&virtual_device.sem, 1);
+    sema_init(&interfacer.sem, 1);
 
     ret = gpioInit();
     if (ret < 0)
@@ -186,7 +166,7 @@ static int PMSDIMdriver_init(void)
     }
 
     printk(KERN_INFO "PMSDIMD: Module loaded\n");
-    return 0;
+    return SYRT_OK;
 }
 
 /* Exit function */

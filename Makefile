@@ -2,7 +2,7 @@
 
 # File name: Makefile (PMSD_IMdriver/)
 # Code author: Ramana R (github@Rr42)
-# Code version: v1.0
+# Code version: v1.0.1
 # Application: PMSD Interface Module driver
 # Description: 
 # 	This code ficitilates easy compilation, testing and deploynment for the PMSD Interface Module driver.
@@ -23,7 +23,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 obj-m     += PMSDIMDriverMod.o
-PMSDIMDriverMod-y := PMSDIMDriver.o gpioCore.o
+PMSDIMDriverMod-y := PMSDIMDriver.o gpioCore.o PMSDErrorCodes.o
 
 KERNEL_DIR := /lib/modules/$(shell uname -r)/build
 PWD  := $(shell pwd)

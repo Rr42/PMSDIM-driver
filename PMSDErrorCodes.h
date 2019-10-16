@@ -1,10 +1,10 @@
 /*
-* File name: gpioCore.h
+* File name: PMSDErrorCodes.h
 * Code author: Ramana R (github@Rr42)
-* Code version: v1.0.1
+* Code version: v1.0
 * Application: PMSD Interface Module driver
 * Description: 
-* 	This code provides declarations for the core GPIO functionality required by the PMSD Interface Module driver.
+* 	This code provides declarations for error codes used in the PMSD IM application.
 * License:
 *   Copyright (C) 2019  Ramana R (github@Rr42)
 *   
@@ -22,29 +22,23 @@
 *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef __GPIO_CORE__
-#define __GPIO_CORE__
+#ifndef __PMSD_ERROR_CODES__
+#define __PMSD_ERROR_CODES__
 
-/* Includes */
-#include <linux/gpio.h>
-#include "PMSDInterfacer.h"
-#include "PMSDErrorCodes.h"
+/* PMSD internal return codes */
+#define RT_OK 0
+#define RT_FAIL -1
+#define RT_WARNING -2
+#define RT_FATAL -3
+#define RT_UNMET_CONDITION -4
+#define RT_UNKNOWN_ERROR -100
 
-// #include "/usr/include/wiringPi.h"
+/* System return codes */
+#define SYRT_OK 0;
+#define SYRT_FATAL -1
 
-/* GPIO number for indicator LED */
-#define INDICATOR_LED 5
-
-/* Possible GPIO pin states */
-#define LOW 0
-#define HIGH 1
-
-/* Functions */
-int gpioInit(void);
-int gpioSetSignalL(void);
-int gpioSetSignalH(void);
-int gpioExit(void);
-
-int interfacerExecute(struct PMSDInterfacer*);
+/* Device error codes */
+extern const char ECODE_OK[2];// = "0\0";
+extern const char ECODE_FAIL[3];// = "-1\0";
 
 #endif
